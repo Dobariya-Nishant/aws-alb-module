@@ -19,7 +19,7 @@ resource "aws_lb_listener" "http_listener" {
 }
 
 resource "aws_lb_listener" "https" {
-  count = var.enable_https == true ? 1 : 0
+  count = var.enable_https == true && var.certificate_arn != null ? 1 : 0
 
   load_balancer_arn = aws_lb.alb_loadbalancer.arn
   port              = 443

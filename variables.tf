@@ -1,14 +1,14 @@
 locals {
-  post_fix                = "${var.alb_name}-${var.environment}"
+  pre_fix                 = "${var.alb_name}-${var.environment}"
   visibility              = var.enable_public_access == true ? "public" : "private"
-  subnet_ids              = length(var.public_subnet_ids) > 0 ? var.public_subnet_ids : var.private_subnet_ids
-  load_balancer_name      = local.post_fix
+  subnet_ids              = concat(var.public_subnet_ids, var.private_subnet_ids)
+  load_balancer_name      = local.pre_fix
   enable_health_check     = var.target_type == "instance" ? true : var.enable_health_check
-  sg_name                 = "alb-sg-${local.post_fix}"
-  http_target_group_name  = "http-tg-${local.post_fix}"
-  https_target_group_name = "https-tg-${local.post_fix}"
-  http_listener_name      = "http-${local.post_fix}"
-  https_listener_name     = "https-${local.post_fix}"
+  sg_name                 = "${local.pre_fix}-alb-sg"
+  http_target_group_name  = "${local.pre_fix}-http-tg"
+  https_target_group_name = "${local.pre_fix}-https-tg"
+  http_listener_name      = "${local.pre_fix}-http"
+  https_listener_name     = "${local.pre_fix}-https"
   common_tags = {
     Project     = var.project_name
     Environment = var.environment
@@ -114,7 +114,7 @@ variable "load_balancing_algorithm" {
 
 variable "certificate_arn" {
   type        = string
-  default     = ""
+  default     = null
   description = "ARN of the SSL certificate for HTTPS listener. Required if enable_https is true."
 
   validation {

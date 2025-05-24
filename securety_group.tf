@@ -24,7 +24,7 @@ resource "aws_security_group_rule" "pub_http" {
 }
 
 resource "aws_security_group_rule" "pub_https" {
-  count = var.enable_public_access == true && var.enable_https == true ? 1 : 0
+  count = var.enable_public_access == true && var.enable_https == true && var.certificate_arn != null ? 1 : 0
 
   type              = "ingress"
   from_port         = 443
@@ -48,7 +48,7 @@ resource "aws_security_group_rule" "http_security_group_rule" {
 }
 
 resource "aws_security_group_rule" "https_security_group_rule" {
-  count = var.source_security_group_id != null && var.enable_https == true ? 1 : 0
+  count = var.source_security_group_id != null && var.enable_https == true && var.certificate_arn != null ? 1 : 0
 
   type                     = "ingress"
   from_port                = 443
