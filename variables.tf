@@ -118,7 +118,7 @@ variable "certificate_arn" {
   description = "ARN of the SSL certificate for HTTPS listener. Required if enable_https is true."
 
   validation {
-    condition     = !(var.enable_https == true && length(var.certificate_arn) == 0)
+    condition     = !(var.enable_https == true && var.certificate_arn == null)
     error_message = "certificate_arn is needed for enabling https"
   }
 }
