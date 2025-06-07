@@ -1,27 +1,32 @@
 locals {
-  pre_fix                 = "${var.alb_name}-${var.environment}"
-  visibility              = var.enable_public_access == true ? "public" : "private"
-  subnet_ids              = concat(var.public_subnet_ids, var.private_subnet_ids)
-  load_balancer_name      = local.pre_fix
-  enable_health_check     = var.target_type == "instance" ? true : var.enable_health_check
-  sg_name                 = "${local.pre_fix}-alb-sg"
-  http_target_group_name  = "${local.pre_fix}-http-tg"
-  https_target_group_name = "${local.pre_fix}-https-tg"
-  http_listener_name      = "${local.pre_fix}-http"
-  https_listener_name     = "${local.pre_fix}-https"
+  pre_fix             = "${var.name}-${var.environment}"
+  visibility          = var.enable_public_access == true ? "public" : "private"
+  subnet_ids          = concat(var.public_subnet_ids, var.private_subnet_ids)
+  load_balancer_name  = local.pre_fix
+  enable_health_check = var.target_type == "instance" ? true : var.enable_health_check
+  sg_name             = "${local.pre_fix}-alb-sg"
+  http_listener_name  = "${local.pre_fix}-http"
+  https_listener_name = "${local.pre_fix}-https"
   common_tags = {
     Project     = var.project_name
     Environment = var.environment
     Visibility  = local.visibility
   }
+  port_mappings = {
+    HTTP  = 80
+    HTTPS = 443
+    SSH   = 443
+  }
 }
+
+
 
 variable "project_name" {
   type        = string
   description = "Name of the project. Used for tagging and naming resources."
 }
 
-variable "alb_name" {
+variable "name" {
   type        = string
   description = "Base name for the Application Load Balancer (ALB)."
 }
@@ -70,55 +75,27 @@ variable "enable_cross_zone_load_balancing" {
   description = "Enables/disables cross-zone load balancing on the ALB."
 }
 
-variable "enable_health_check" {
-  type        = bool
-  default     = false
-  description = "Enable health checks for the target groups."
-}
-
-variable "health_check_path" {
-  type        = string
-  default     = "/"
-  description = "The destination path used by the load balancer to perform health checks on targets (e.g. '/', '/health')."
-}
-
 variable "source_security_group_id" {
   type        = string
   default     = null
   description = "Optional: Security group ID for allowing specific inbound traffic sources."
 }
 
-variable "enable_http" {
-  type        = bool
-  default     = false
-  description = "Set to true to enable HTTP listener on the ALB."
+variable "listeners" {
+  type = list(object({
+    name                = optional(string)
+    protocol            = string
+    certificate_arn     = optional(string)
+  }))
 }
 
-variable "enable_https" {
-  type        = bool
-  default     = false
-  description = "Set to true to enable HTTPS listener on the ALB."
-}
-
-variable "target_type" {
-  type        = string
-  default     = "instance"
-  description = "Target type for the target group. Valid values: instance, ip, lambda."
-}
-
-variable "load_balancing_algorithm" {
-  type        = string
-  default     = "round_robin"
-  description = "Load balancing algorithm to distribute traffic. Options: round_robin, least_outstanding_requests (for ALB), weighted_round_robin (for NLB)."
-}
-
-variable "certificate_arn" {
-  type        = string
-  default     = null
-  description = "ARN of the SSL certificate for HTTPS listener. Required if enable_https is true."
-
-  validation {
-    condition     = !(var.enable_https == true && var.certificate_arn == null)
-    error_message = "certificate_arn is needed for enabling https"
-  }
+variable "target_groups" {
+  type = map(object({
+    name                     = optional(string)
+    target_type              = optional(string)
+    protocol                 = string
+    health_check_path        = optional(string)
+    enable_health_check      = optional(bool)
+    load_balancing_algorithm = optional(string)
+  }))
 }
