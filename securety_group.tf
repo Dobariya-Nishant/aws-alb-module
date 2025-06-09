@@ -1,7 +1,6 @@
 resource "aws_security_group" "lb_sg" {
-  name        = local.sg_name
-  description = "Security Group"
-  vpc_id      = var.vpc_id
+  name     = local.sg_name
+  vpc_id   = var.vpc_id
 
   tags = merge(
     local.common_tags,
@@ -11,60 +10,14 @@ resource "aws_security_group" "lb_sg" {
   )
 }
 
-resource "aws_security_group_rule" "pub_http" {
-  count = var.enable_public_access == true && var.enable_http == true ? 1 : 0
+resource "aws_security_group_rule" "rules" {
+  for_each = var.securety_group.rules != null ? var.securety_group.rules : {}
 
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  description       = "Allow HTTP"
-  security_group_id = aws_security_group.lb_sg.id
-}
-
-resource "aws_security_group_rule" "pub_https" {
-  count = var.enable_public_access == true && var.enable_https == true && var.certificate_arn != null ? 1 : 0
-
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  description       = "Allow HTTP"
-  security_group_id = aws_security_group.lb_sg.id
-}
-
-resource "aws_security_group_rule" "http_security_group_rule" {
-  count = var.source_security_group_id != null && var.enable_http == true ? 1 : 0
-
-  type                     = "ingress"
-  from_port                = 80
-  to_port                  = 80
-  protocol                 = "tcp"
-  source_security_group_id = var.source_security_group_id
-  description              = "Allow HTTP"
-  security_group_id        = aws_security_group.lb_sg.id
-}
-
-resource "aws_security_group_rule" "https_security_group_rule" {
-  count = var.source_security_group_id != null && var.enable_https == true && var.certificate_arn != null ? 1 : 0
-
-  type                     = "ingress"
-  from_port                = 443
-  to_port                  = 443
-  protocol                 = "tcp"
-  source_security_group_id = var.source_security_group_id
-  description              = "Allow HTTP"
-  security_group_id        = aws_security_group.lb_sg.id
-}
-
-resource "aws_security_group_rule" "egress" {
-  type              = "egress"
-  description       = "Allow all outbound traffic"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
+  from_port         = each.value.from_port
+  type              = each.value.type
+  to_port           = each.value.to_port
+  protocol          = each.value.protocol
+  cidr_blocks       = each.value.cidr_blocks
+  description       = each.value.description
   security_group_id = aws_security_group.lb_sg.id
 }

@@ -1,9 +1,9 @@
-resource "aws_lb" "alb_loadbalancer" {
+resource "aws_lb" "this" {
   name               = local.load_balancer_name
-  internal           = !var.enable_public_access
+  internal           = !var.internal
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb_sg.id]
-  subnets            = local.subnet_ids
+  subnets            = var.subnet_ids
 
   enable_cross_zone_load_balancing = var.enable_cross_zone_load_balancing
 
