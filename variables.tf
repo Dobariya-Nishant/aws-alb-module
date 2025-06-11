@@ -2,7 +2,7 @@ locals {
   pre_fix            = "${var.name}-${var.environment}"
   visibility         = var.internal == true ? "public" : "private"
   load_balancer_name = local.pre_fix
-  sg_name            = "${local.pre_fix}-alb-sg"
+  sg_name            = "${local.pre_fix}-alb-sg"  
 
   listener_rules = flatten([
     for listener_key, listener in var.listeners : [
@@ -67,7 +67,7 @@ variable "internal" {
 }
 
 variable "securety_group" {
-  type = map(object({
+  type = object({
     name = optional(string)
     rules = optional(list(object({
       type            = string
@@ -78,7 +78,12 @@ variable "securety_group" {
       description     = optional(string)
       security_groups = optional(list(string))
     })))
-  }))
+  })
+
+  default = {
+    "name" = null
+    "rules" = []
+  }
 }
 
 variable "target_groups" {
@@ -113,7 +118,7 @@ variable "listeners" {
       target_group_key = string
     })
     rules = list(object({
-      path_pattern     = string
+      path_pattern     = list(string)
       priority         = number
       target_group_key = string
     }))

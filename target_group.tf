@@ -1,10 +1,8 @@
 resource "aws_lb_target_group" "this" {
   for_each = var.target_groups
 
-  name = coalesce(
-    lookup(each.value.name, "name", null),
-    "${local.pre_fix}-tg-${each.key}"
-  )
+  name = lookup(each.value, "name", "${local.pre_fix}-tg-${each.key}")
+
   port                          = each.value.port
   protocol                      = each.value.protocol
   vpc_id                        = var.vpc_id
@@ -32,10 +30,7 @@ resource "aws_lb_target_group" "this" {
   tags = merge(
     local.common_tags,
     {
-      Name = coalesce(
-        lookup(each.value.name, "name", null),
-        "${local.pre_fix}-tg-${each.key}"
-      )
+      Name = lookup(each.value, "name", "${local.pre_fix}-tg-${each.key}")
     }
   )
 }
